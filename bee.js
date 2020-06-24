@@ -114,7 +114,7 @@ function DrawBee() {
     let a = Math.PI / 2 - bee.rotation;
     a += Math.PI * 2;
     a %= Math.PI * 2;
-    let angle = Math.min(Math.max(Math.round(a / (Math.PI * 2) * 8), 0), 7);
+    let angle = Math.max(Math.round(a / (Math.PI * 2) * 8), 0) % 8;
     ctx.drawImage(beeSprite, angle * 32, 0, 32, 32, x - scale / 2, y - scale / 2 + h * 2.5, scale, scale);
     ctx.fillStyle = "black";
 }
