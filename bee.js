@@ -6,8 +6,8 @@ let bee = {
     rotation: 0,
     max_speed: 1,
     speed: 0,
-    targetX: 10,
-    targetY: 10,
+    targetX: 0,
+    targetY: 0,
     destinationReached: true,
     honeyStored: 20,
     inventory: {
@@ -41,6 +41,7 @@ function UpdateBee(distanceToTarget) {
     if (distanceToTarget < 0.5) {
         bee.destinationReached = true;
         bee.speed /= 1.1;
+        currentSelection.show = false;
     }
 
     bee.x += Math.cos(bee.rotation) * bee.speed;
@@ -90,6 +91,20 @@ function UpdateInventory() {
         count++;
     }
 }
+
+function ToggleInventory() {
+    if (!inventoryOpen) inventoryOpen = true;
+    else CloseInventory();
+}
+
+function CloseInventory() {
+    inventoryOpen = false;
+    if (bee.inventoryItemSelected) {
+        bee.inventoryItemSelected = false;
+        bee.inventory[bee.selectedInventoryItem].selected = false;
+    }
+}
+
 let beeWaveTimer = 0;
 
 function DrawBee() {

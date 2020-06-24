@@ -68,6 +68,7 @@ let objectMap = [...Array(mH)].map((_, a) => [...Array(mW)].map((_, b) => {
 
 
 function SetBlockFromInventory(xPosition, yPosition) {
+    if (yPosition < 0 || xPosition < 0 || yPosition >= mH || xPosition >= mW) return;
     let itemSelected = bee.inventory[bee.selectedInventoryItem];
     if (itemSelected.type == "object") { //its an object
         if (objectMap[yPosition][xPosition].id == 0) { //nothing there

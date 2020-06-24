@@ -48,7 +48,13 @@ document.onmousemove = e => {
 document.oncontextmenu = e => {
     e.preventDefault();
 }
-
+let keys = [];
+document.onkeydown = (e) => {
+    keys[e.key] = true;
+}
+document.onkeyup = (e) => {
+    keys[e.key] = false;
+}
 
 
 
@@ -61,7 +67,8 @@ ctx.font = "30px Arial";
 
 let currentSelection = {
     x: 0,
-    y: 0
+    y: 0,
+    show: false
 } //MUST. ANIMATE. EVERYTHING.
 
 
@@ -122,7 +129,7 @@ function Loop() {
 
 
 
-    if (!bee.destinationReached) {
+    if (!bee.destinationReached && currentSelection.show) {
         let selectedXPosition = ((bee.targetX - camera.x) * 32 + hw / camera.zoom) * camera.zoom;
         let selectedYPosition = ((bee.targetY - camera.y) * 32 + hh / camera.zoom) * camera.zoom;
         let gradient = ctx.createRadialGradient(selectedXPosition + 0.5 * scale, selectedYPosition + 0.5 * scale, 0, selectedXPosition + 0.5 * scale, selectedYPosition + 0.5 * scale, scale);
@@ -142,12 +149,35 @@ function Loop() {
 
     if (inventoryOpen)
         UpdateInventory();
-
+    //im so sorry i know this can be optimised
+    let movementYeahYeah = false; //is the player moving with wasd
+    if (keys["w"]) {
+        bee.targetY = bee.y - 3;
+        movementYeahYeah = true;
+    }
+    if (keys["a"]) {
+        bee.targetX = bee.x - 3;
+        movementYeahYeah = true;
+    }
+    if (keys["s"]) {
+        bee.targetY = bee.y + 2;
+        movementYeahYeah = true;
+    }
+    if (keys["d"]) {
+        bee.targetX = bee.x + 2;
+        movementYeahYeah = true;
+    }
+    if (movementYeahYeah) {
+        bee.destinationReached = false;
+        currentSelection.show = false;
+    } else if (currentSelection.show == false && !bee.destinationReached) { //stops the bee from overshooting if the player stops pressing
+        bee.destinationReached = false;
+    }
     if (mouse.leftPressed) {
         if (!mouse.leftClicked) {
             let iP = false;
             if (mouse.trueX < c.width && mouse.trueX > c.width - scale - 5 && mouse.trueY < scale + 5 && mouse.trueY > 0) {
-                inventoryOpen = !inventoryOpen;
+                ToggleInventory();
                 if (bee.inventoryItemSelected)
                     bee.inventory[bee.selectedInventoryItem].selected = false;
                 iP = true;
@@ -156,18 +186,19 @@ function Loop() {
                 bee.targetX = xPosition;
                 bee.targetY = yPosition;
                 bee.destinationReached = false;
+                currentSelection.show = true;
             }
             if (shopOpen) {
                 if (mouse.trueX < hw || mouse.trueY < 60 || mouse.trueX > c.width - 20 || mouse.trueY > c.height - 20) {
                     CloseShop();
-                    inventoryOpen = false;
+                    CloseInventory();
 
                 }
 
             } else if (inventoryOpen) {
                 if ((mouse.trueX < hw + widthOfShopbox + 20 || mouse.trueY < 60) && !iP) {
                     if (!bee.inventoryItemSelected)
-                        inventoryOpen = false;
+                        CloseInventory();
                     else {
                         SetBlockFromInventory(xPosition, yPosition);
                     }
@@ -238,6 +269,11 @@ function Loop() {
     ctx.drawImage(menuSet, 0, 0, 32, 32, c.width - scale - 5, 5, scale, scale);
 
     ctx.shadowBlur = 0;
+    let vignette = ctx.createRadialGradient(hw, hh, 0, hw, hh, c.width);
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(30, 0, 59,1)");
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, c.width, c.height);
     requestAnimationFrame(Loop);
 }
 requestAnimationFrame(Loop);
