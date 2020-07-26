@@ -68,10 +68,27 @@ ctx.font = "30px Arial";
 let currentSelection = {
     x: 0,
     y: 0,
-    show: false
+    show: false,
+    timer: 0
 } //MUST. ANIMATE. EVERYTHING.
 
+function setTarget(x, y, show) {
+    bee.targetX = x;
+    bee.targetY = y;
+    bee.destinationReached = false;
+    currentSelection.show = show;
+    currentSelection.timer = 0;
+}
+let goCollectNectar = false; //will be true when the bee has to collect nectar
+function collectNectar(x, y) {
+    let obj = objectMap[y][x];
 
+    temp = bee.honeyStored;
+    bee.honeyStored = Math.min(bee.maxHoney, Math.floor(obj.value) + bee.honeyStored);
+    obj.value = Math.max(0, obj.value - (bee.maxHoney - temp));
+
+    goCollectNectar = false;
+}
 
 let totalStorage = 0;
 
@@ -105,7 +122,6 @@ function Loop() {
     DrawObjectMap(objectMap);
 
 
-    DrawStorage(storageIndices);
 
     // ctx.fillText(bee.speed, (bee.x - camera.x) * scale + hw, (bee.y - camera.y - 1) * scale + hh);
     // ctx.fillText(distanceToTarget, (bee.x - camera.x) * scale + hw, (bee.y - camera.y - 1.5) * scale + hh);
@@ -132,13 +148,20 @@ function Loop() {
     if (!bee.destinationReached && currentSelection.show) {
         let selectedXPosition = ((bee.targetX - camera.x) * 32 + hw / camera.zoom) * camera.zoom;
         let selectedYPosition = ((bee.targetY - camera.y) * 32 + hh / camera.zoom) * camera.zoom;
-        let gradient = ctx.createRadialGradient(selectedXPosition + 0.5 * scale, selectedYPosition + 0.5 * scale, 0, selectedXPosition + 0.5 * scale, selectedYPosition + 0.5 * scale, scale);
-        gradient.addColorStop(0.4, "rgba(255,255,0,0)");
-        gradient.addColorStop(0.5, "rgba(255,255,0," + Math.min(distanceToTarget - 0.5, 1));
+        let gradient = ctx.createRadialGradient(selectedXPosition + 0.5 * scale, selectedYPosition + 0.5 * scale, 0, selectedXPosition + 0.5 * scale, selectedYPosition + 0.5 * scale, scale * 0.75);
+        let offset = (Smoothen(SmoothCurve(currentSelection.timer, 10)) / 5) - 0.2;
+        gradient.addColorStop(0.4 + offset, "rgba(255,255,0,0)");
+        gradient.addColorStop(0.5 + offset, "rgba(255,255,0," + Math.min(distanceToTarget - 0.5, 1));
         gradient.addColorStop(0.7, "rgba(255,255,0,0)");
         ctx.fillStyle = gradient;
-        ctx.fillRect(selectedXPosition, selectedYPosition, scale, scale);
+        ctx.beginPath();
+        ctx.arc(selectedXPosition + scale / 2, selectedYPosition + scale / 2, scale * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        // ctx.fillRect(selectedXPosition, selectedYPosition, scale, scale);
+        currentSelection.timer++;
     }
+    DrawStorage(storageIndices);
+
     DrawBee();
 
     ctx.fillStyle = "black";
@@ -183,10 +206,8 @@ function Loop() {
                 iP = true;
                 knockSound.sounds[knockSound.counter = (knockSound.counter + 1) % knockSound.sounds.length].play();
             } else if (!shopOpen && !inventoryOpen) {
-                bee.targetX = xPosition;
-                bee.targetY = yPosition;
-                bee.destinationReached = false;
-                currentSelection.show = true;
+                setTarget(xPosition, yPosition, true);
+                goCollectNectar = false;
             }
             if (shopOpen) {
                 if (mouse.trueX < hw || mouse.trueY < 60 || mouse.trueX > c.width - 20 || mouse.trueY > c.height - 20) {
@@ -226,9 +247,9 @@ function Loop() {
                             bee.honeyStored = Math.max(0, bee.honeyStored - (obj.maxValue - temp));
                             break;
                         case 2: //flower
-                            temp = bee.honeyStored;
-                            bee.honeyStored = Math.min(99, Math.floor(obj.value) + bee.honeyStored);
-                            obj.value = Math.max(0, obj.value - (99 - temp));
+                            goCollectNectar = true;
+
+                            setTarget(selectionX, selectionY, true);
                             break;
                         case 3: //terminal
                             if (shopOpen) CloseShop();
@@ -250,8 +271,8 @@ function Loop() {
     } else {
         mouse.rightClicked = false;
     }
-    let w = ctx.measureText(bee.honeyStored + " / 99").width;
-    ctx.fillText(bee.honeyStored + " / 99", c.width / 2 - w / 2, 40);
+    let w = ctx.measureText(bee.honeyStored + " / " + bee.maxHoney).width;
+    ctx.fillText(bee.honeyStored + " / " + bee.maxHoney, c.width / 2 - w / 2, 40);
     ctx.fillText(totalStorage, 15, 40);
     if (shopOpen) {
         DrawShop();
@@ -269,11 +290,11 @@ function Loop() {
     ctx.drawImage(menuSet, 0, 0, 32, 32, c.width - scale - 5, 5, scale, scale);
 
     ctx.shadowBlur = 0;
-    let vignette = ctx.createRadialGradient(hw, hh, 0, hw, hh, c.width);
-    vignette.addColorStop(0, "rgba(0,0,0,0)");
-    vignette.addColorStop(1, "rgba(30, 0, 59,1)");
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, c.width, c.height);
+    // let vignette = ctx.createRadialGradient(hw, hh, 0, hw, hh, c.width);
+    // vignette.addColorStop(0, "rgba(0,0,0,0)");
+    // vignette.addColorStop(1, "rgba(30, 0, 59,1)");
+    // ctx.fillStyle = vignette;
+    // ctx.fillRect(0, 0, c.width, c.height);
     requestAnimationFrame(Loop);
 }
 requestAnimationFrame(Loop);

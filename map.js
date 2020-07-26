@@ -58,10 +58,10 @@ let objectMap = [...Array(mH)].map((_, a) => [...Array(mW)].map((_, b) => {
     let object = {
         id: id
     }
-    if (id == 1 || id == 2) {
+    if (id == 1) {
         storageIndices.push([a, b]);
         object.value = 0;
-        object.maxValue = 99;
+        object.maxValue = 1000;
     }
     return object;
 }));
@@ -75,7 +75,14 @@ function SetBlockFromInventory(xPosition, yPosition) {
             let newObject = {
                 id: itemSelected.id,
                 value: 0,
-                maxValue: 99
+                maxValue: 0
+            }
+            switch (newObject.id) {
+                case 1:
+                    newObject.maxValue = 1000;
+                    break;
+                case 2:
+                    newObject.maxValue = 40;
             }
             if (bee.selectedInventoryItem != "Flower" || (bee.selectedInventoryItem == "Flower" && map[yPosition][xPosition] == 0)) {
                 objectMap[yPosition][xPosition] = newObject;

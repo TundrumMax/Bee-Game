@@ -31,13 +31,28 @@ function TriangleCurve(x, a) {
 }
 //smoothens a curve
 function Smoothen(x) {
-    return (x ** 2) * (3 - 2 * x)
+    return (x ** 2) * (3 - 2 * x);
 }
 //combines the trianglecurve function with the smoothen function to create a smooth triangle curve, which can be used to animation a glow as a reaction to an event
 let SmoothTriangleCurve = (x, a) => Smoothen(TriangleCurve(x, a));
 
+function SmoothJumpCurve(x, a) {
+    return x / (x + a);
+}
+let e = 2.718281828459045235;
 
+function SmoothCurve(x, a) {
+    return -Math.pow((e), ((-x) / a)) + 1;
+}
 
+function BiasCurve(x, a) {
+    let k = (1 - a) ** 3;
+    return (x * k) / (x * k - x + 1);
+}
+
+function lerp(v0, v1, t) {
+    return (1 - t) * v0 + t * v1;
+}
 //Tile Images
 let menuSet = new Image();
 menuSet.src = "MenuSprites.png";
@@ -97,9 +112,9 @@ function DrawStorage(storageIndices) {
         let drawY = (y - camera.y) * scale + hh + scale;
         let obj = objectMap[y][x];
         if (obj.id == 2) {
-            let randomNumber = Math.random()
-            if (randomNumber < 0.01)
-                obj.value = Math.min(obj.value + 1, 99);
+            let randomNumber = Math.random();
+            if (randomNumber < 0.5)
+                obj.value = Math.min(obj.value + 0.01, obj.maxValue);
 
         } else if (obj.id == 1) {
             if (sellRequest) {
@@ -111,11 +126,14 @@ function DrawStorage(storageIndices) {
 
 
         let value = obj.value;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3 * camera.zoom / 2;
+        ctx.font = 15 * camera.zoom + "px Arial";
         ctx.strokeStyle = "#6363aa";
         ctx.strokeText(Math.floor(value), drawX, drawY);
         ctx.fillStyle = "white";
         ctx.fillText(Math.floor(value), drawX, drawY);
+        ctx.font = "30px Arial";
+
         if (obj.id == 1)
             totalStorage += Math.floor(obj.value);
     }
